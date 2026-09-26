@@ -1,0 +1,831 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WineGPT Gradient Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c080a;
+    --panel: #150e12;
+    --panel-2: #1c1318;
+    --line: #2d1f26;
+    --text: #f3e9ec;
+    --muted: #a08c94;
+    --wine: #c2185b;
+    --wine-soft: #e0527f;
+    --gold: #f5c77e;
+    --sgd: #38bdf8;
+    --momentum: #4ade80;
+    --rmsprop: #e879f9;
+    --adam: #fde68a;
+    --red: #d7264f;
+    --white: #eed98a;
+    --rose: #f59bb5;
+    --sparkling: #7cc9ee;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body {
+    font-family: Inter, system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    background:
+      radial-gradient(1200px 600px at 10% -10%, #3a0b22 0%, transparent 60%),
+      radial-gradient(900px 500px at 110% 10%, #24102e 0%, transparent 55%),
+      var(--bg);
+    min-height: 100vh;
+  }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 32px 16px 64px; }
+  header { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+  h1 { font-family: Fraunces, serif; font-weight: 700; font-size: clamp(30px, 5vw, 48px); margin: 0; letter-spacing: -0.02em; line-height: 1.05; }
+  h1 span { background: linear-gradient(90deg, var(--wine-soft), var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { color: var(--muted); margin-top: 6px; max-width: 60ch; }
+  .eq { font-family: "JetBrains Mono", monospace; font-size: 13px; color: var(--gold); background: var(--panel); border: 1px solid var(--line); padding: 10px 14px; border-radius: 10px; white-space: nowrap; }
+  .eq b { color: var(--wine-soft); font-weight: 600; }
+
+  section { background: linear-gradient(180deg, var(--panel), #110b0e); border: 1px solid var(--line); border-radius: 18px; padding: 20px; margin-bottom: 24px; box-shadow: 0 30px 80px -40px #000; }
+  .sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  h2 { font-family: Fraunces, serif; font-weight: 500; font-size: 22px; margin: 0; }
+  h2 small { font-family: Inter, sans-serif; font-size: 12px; color: var(--muted); font-weight: 400; margin-left: 8px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .hint { color: var(--muted); font-size: 12.5px; }
+
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 18px; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+  .stage { position: relative; border-radius: 14px; overflow: hidden; background: #07040a; border: 1px solid var(--line); min-height: 460px; }
+  @media (max-width: 900px) { .stage { min-height: 0; aspect-ratio: 1 / 1; } }
+  .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .stage .badge { position: absolute; left: 12px; top: 12px; font-family: "JetBrains Mono", monospace; font-size: 11.5px; color: var(--text); background: #0c080acc; border: 1px solid var(--line); padding: 5px 9px; border-radius: 8px; backdrop-filter: blur(6px); pointer-events: none; }
+  .stage .badge.r { left: auto; right: 12px; }
+
+  .side { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  .card { background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 8px; display: flex; justify-content: space-between; }
+  .label output { font-family: "JetBrains Mono", monospace; color: var(--gold); text-transform: none; letter-spacing: 0; }
+
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .seg button, .btn { font: inherit; font-size: 13px; color: var(--text); background: #0f0a0d; border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; cursor: pointer; transition: border-color .15s, background .15s; }
+  .seg button:hover, .btn:hover { border-color: #4a3440; }
+  .seg button.on { border-color: var(--wine-soft); background: #2a0f1c; }
+  .row { display: flex; gap: 8px; }
+  .row .btn { flex: 1; }
+  .btn.primary { background: linear-gradient(135deg, #8e1240, var(--wine)); border-color: transparent; font-weight: 600; }
+  .btn.primary:hover { filter: brightness(1.12); }
+
+  input[type=range] { width: 100%; accent-color: var(--wine-soft); }
+  select { width: 100%; font: inherit; font-size: 13px; color: var(--text); background: #0f0a0d; border: 1px solid var(--line); border-radius: 9px; padding: 7px 8px; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .check { display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; user-select: none; }
+
+  .legend { display: flex; flex-direction: column; gap: 6px; }
+  .opt { display: grid; grid-template-columns: 14px 1fr auto; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; cursor: pointer; user-select: none; border: 1px solid transparent; }
+  .opt:hover { border-color: var(--line); }
+  .opt.off { opacity: 0.35; }
+  .opt i { width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 10px currentColor; background: currentColor; }
+  .opt .v { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--muted); }
+  .opt .v.dead { color: #ff6b6b; }
+
+  .mini { width: 100%; height: 110px; display: block; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .stat { background: #0f0a0d; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+  .stat b { display: block; font-family: "JetBrains Mono", monospace; font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .stat span { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .keys { display: flex; flex-wrap: wrap; gap: 10px 14px; font-size: 12.5px; }
+  .keys span { display: inline-flex; align-items: center; gap: 6px; }
+  .keys i { width: 10px; height: 10px; border-radius: 50%; }
+
+  .tip { position: absolute; pointer-events: none; background: #0c080af0; border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; font-size: 12px; min-width: 170px; opacity: 0; transition: opacity .1s; z-index: 3; }
+  .tip b { font-family: Fraunces, serif; font-weight: 500; font-size: 14px; display: block; margin-bottom: 4px; }
+  .tip .bar { display: grid; grid-template-columns: 62px 1fr 34px; gap: 6px; align-items: center; font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--muted); }
+  .tip .bar div { height: 5px; border-radius: 3px; }
+
+  .explain { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 16px; }
+  @media (max-width: 900px) { .explain { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 520px) { .explain { grid-template-columns: 1fr; } }
+  .explain div { border-left: 2px solid; padding: 2px 0 2px 12px; font-size: 12.5px; color: var(--muted); }
+  .explain b { color: var(--text); display: block; font-size: 13px; }
+  .explain code { font-family: "JetBrains Mono", monospace; font-size: 11.5px; color: var(--gold); }
+  footer { color: var(--muted); font-size: 12px; text-align: center; margin-top: 8px; }
+  footer code { font-family: "JetBrains Mono", monospace; color: var(--gold); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Gradient <span>Lab</span> 🍷</h1>
+      <div class="sub">WineGPT, under the hood: watch four optimizers race down loss landscapes, then see gradient descent teach a model to tell a Barolo from a Prosecco.</div>
+    </div>
+    <div class="eq">θ<sub>t+1</sub> = θ<sub>t</sub> − <b>η</b> · ∇L(θ<sub>t</sub>)</div>
+  </header>
+
+  <!-- ============ Optimizer race ============ -->
+  <section>
+    <div class="sec-head">
+      <h2>Optimizer race <small>2D loss surfaces</small></h2>
+      <div class="hint" id="raceHint">Click the surface to drop the optimizers somewhere new · drag in 3D to orbit</div>
+    </div>
+    <div class="grid">
+      <div class="stage" id="raceStage">
+        <canvas id="race"></canvas>
+        <div class="badge" id="raceBadge">step 0</div>
+        <div class="badge r" id="surfBadge"></div>
+      </div>
+      <div class="side">
+        <div class="card">
+          <div class="label">Surface</div>
+          <div class="seg" id="surfaces"></div>
+        </div>
+        <div class="card">
+          <div class="label">View</div>
+          <div class="seg" id="views">
+            <button data-v="2d" class="on">Contour</button>
+            <button data-v="3d">3D</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="label">Learning rate × <output id="lrOut">1.00</output></div>
+          <input type="range" id="lr" min="-1" max="1" step="0.01" value="0">
+          <div class="label" style="margin-top:10px">Steps per frame <output id="spdOut">2</output></div>
+          <input type="range" id="spd" min="1" max="12" step="1" value="2">
+          <div class="row" style="margin-top:10px">
+            <button class="btn primary" id="play">Pause</button>
+            <button class="btn" id="reset">Reset</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="label">Optimizers <span>loss</span></div>
+          <div class="legend" id="legend"></div>
+          <canvas class="mini" id="raceLoss"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="explain">
+      <div style="border-color:var(--sgd)"><b>SGD</b>Step straight downhill. <code>θ −= η∇L</code> Simple, but crawls through narrow valleys.</div>
+      <div style="border-color:var(--momentum)"><b>Momentum</b>A heavy ball. <code>v = βv + ∇L</code> Builds speed, rolls past bumps and saddles.</div>
+      <div style="border-color:var(--rmsprop)"><b>RMSProp</b>Per-axis step sizes. <code>θ −= η∇L/√s</code> Tames steep directions.</div>
+      <div style="border-color:var(--adam)"><b>Adam</b>Momentum + RMSProp with bias correction. The default for LLM training.</div>
+    </div>
+  </section>
+
+  <!-- ============ Cellar classifier ============ -->
+  <section>
+    <div class="sec-head">
+      <h2>Training on the cellar <small>softmax regression · 40 wines</small></h2>
+      <div class="hint">Hover a bottle to see what the model thinks it is</div>
+    </div>
+    <div class="grid">
+      <div class="stage" id="cellStage">
+        <canvas id="cell"></canvas>
+        <div class="badge" id="cellBadge">epoch 0</div>
+        <div class="tip" id="tip"></div>
+      </div>
+      <div class="side">
+        <div class="card">
+          <div class="stats">
+            <div class="stat"><b id="sLoss">–</b><span>loss</span></div>
+            <div class="stat"><b id="sAcc">–</b><span>accuracy</span></div>
+            <div class="stat"><b id="sGrad">–</b><span>|∇L|</span></div>
+          </div>
+          <canvas class="mini" id="cellLoss" style="margin-top:10px"></canvas>
+          <div class="keys" style="margin-top:4px">
+            <span><i style="background:var(--wine-soft)"></i>loss</span>
+            <span><i style="background:var(--gold)"></i>accuracy</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="label">Features</div>
+          <div class="two">
+            <select id="fx"></select>
+            <select id="fy"></select>
+          </div>
+          <label class="check" style="margin-top:10px"><input type="checkbox" id="poly" checked> Polynomial features (curved boundaries)</label>
+        </div>
+        <div class="card">
+          <div class="label">Optimizer</div>
+          <select id="cOpt">
+            <option value="sgd">SGD</option>
+            <option value="momentum">Momentum</option>
+            <option value="rmsprop">RMSProp</option>
+            <option value="adam" selected>Adam</option>
+          </select>
+          <div class="label" style="margin-top:10px">Learning rate <output id="cLrOut">0.050</output></div>
+          <input type="range" id="cLr" min="-3" max="0.3" step="0.01" value="-1.301">
+          <div class="row" style="margin-top:10px">
+            <button class="btn primary" id="cPlay">Train</button>
+            <button class="btn" id="cReset">Reset</button>
+          </div>
+        </div>
+        <div class="card keys" id="classKeys"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>Same math, in numpy: <code>python -m ml.train --race</code></footer>
+</div>
+
+<script>
+// name, type, body, acidity, tannin, sweetness, abv (mirrors data/wines.csv)
+const WINES = [["Caymus Cabernet","red",4.7,2.8,4.3,1.4,14.8],["Cloudy Bay Sauvignon Blanc","white",1.8,4.6,1.0,1.3,13.0],["La Crema Pinot Noir","red",2.9,3.4,2.4,1.3,13.5],["Veuve Clicquot Champagne","sparkling",2.6,4.7,1.0,1.8,12.0],["Penfolds Bin 389","red",4.6,2.9,4.0,1.4,14.5],["Duckhorn Merlot","red",3.9,2.8,3.2,1.5,14.5],["Catena Malbec","red",4.3,3.0,3.5,1.4,13.9],["Antinori Tignanello","red",4.0,3.9,4.1,1.2,14.0],["Marques de Riscal Reserva","red",3.3,3.2,3.1,1.3,14.0],["Guigal Cotes du Rhone","red",3.4,3.0,2.8,1.4,14.5],["Barolo Fontanafredda","red",4.1,4.2,4.8,1.1,14.0],["Louis Jadot Beaujolais","red",2.0,3.9,1.6,1.4,12.5],["Ridge Lytton Springs","red",4.4,2.9,3.1,1.9,14.8],["Chateau Margaux","red",4.5,3.4,4.5,1.1,13.5],["Kim Crawford Pinot Noir","red",2.5,3.8,2.1,1.3,13.5],["Chateau Musar","red",3.5,3.4,3.0,1.2,14.0],["Rombauer Chardonnay","white",3.8,2.3,1.0,1.8,14.5],["Dr Loosen Riesling","white",1.4,4.8,1.0,2.9,8.5],["Santa Margherita Pinot Grigio","white",1.7,3.5,1.0,1.4,12.5],["Trimbach Gewurztraminer","white",3.3,2.2,1.0,2.4,13.5],["Domaine Weinbach Riesling","white",2.4,4.4,1.0,1.8,12.5],["Chablis Premier Cru","white",2.2,4.3,1.0,1.2,12.5],["Condrieu Guigal","white",3.7,2.5,1.0,1.6,14.0],["Albarino Martin Codax","white",1.6,4.4,1.0,1.3,12.5],["Gruner Veltliner Loimer","white",2.1,4.1,1.0,1.3,12.5],["Sancerre Pascal Jolivet","white",1.9,4.5,1.0,1.2,13.0],["Whispering Angel","rose",1.7,3.6,1.3,1.4,13.0],["Miraval Rose","rose",1.8,3.7,1.3,1.3,13.0],["Tavel Chateau d'Aqueria","rose",2.8,3.1,1.8,1.4,14.0],["Mulderbosch Rose","rose",2.2,3.3,1.5,1.9,12.5],["Bandol Rose Tempier","rose",2.6,3.4,1.9,1.2,13.5],["Beringer White Zinfandel","rose",1.5,2.6,1.1,3.3,10.0],["Dom Perignon","sparkling",2.9,4.4,1.0,1.6,12.5],["Krug Grande Cuvee","sparkling",3.3,4.3,1.0,1.6,12.0],["La Marca Prosecco","sparkling",1.4,3.6,1.0,2.2,11.0],["Segura Viudas Cava","sparkling",1.7,4.1,1.0,1.6,11.5],["Moscato d'Asti Vietti","sparkling",1.2,3.3,1.0,3.9,5.5],["Schramsberg Blanc de Blancs","sparkling",2.3,4.6,1.0,1.5,12.5],["Nyetimber Classic Cuvee","sparkling",2.5,4.8,1.0,1.7,12.0],["Ruinart Rose","sparkling",2.7,4.2,1.1,1.6,12.5]];
+
+// ---------- shared helpers ----------
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const hexRgb = (h) => { h = h.replace('#', ''); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)); };
+const CMAP = ['#06030a', '#1a0a2c', '#3a0e4d', '#651456', '#932052', '#c03c44', '#e06a39', '#f39f55', '#fbd394', '#fff3dc'].map(hexRgb);
+function cmap(t) {
+  t = clamp(t, 0, 1) * (CMAP.length - 1);
+  const i = Math.min(Math.floor(t), CMAP.length - 2), f = t - i, a = CMAP[i], b = CMAP[i + 1];
+  return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f];
+}
+function fitCanvas(c) {
+  const r = c.getBoundingClientRect(), d = window.devicePixelRatio || 1;
+  const w = Math.max(1, Math.round(r.width * d)), h = Math.max(1, Math.round(r.height * d));
+  if (c.width !== w || c.height !== h) { c.width = w; c.height = h; return true; }
+  return false;
+}
+const fmt = (v) => !isFinite(v) ? '∞' : Math.abs(v) >= 100 ? v.toFixed(0) : Math.abs(v) >= 1 ? v.toFixed(2) : v.toFixed(4);
+
+// generic optimizers over flat arrays
+function makeOptimizer(kind) {
+  let v = null, s = null, t = 0;
+  return (p, g, lr) => {
+    if (!v) { v = new Float64Array(p.length); s = new Float64Array(p.length); }
+    t++;
+    for (let i = 0; i < p.length; i++) {
+      const gi = g[i];
+      if (kind === 'sgd') p[i] -= lr * gi;
+      else if (kind === 'momentum') { v[i] = 0.9 * v[i] + gi; p[i] -= lr * v[i]; }
+      else if (kind === 'rmsprop') { s[i] = 0.9 * s[i] + 0.1 * gi * gi; p[i] -= lr * gi / (Math.sqrt(s[i]) + 1e-8); }
+      else { // adam
+        v[i] = 0.9 * v[i] + 0.1 * gi; s[i] = 0.999 * s[i] + 0.001 * gi * gi;
+        p[i] -= lr * (v[i] / (1 - 0.9 ** t)) / (Math.sqrt(s[i] / (1 - 0.999 ** t)) + 1e-8);
+      }
+    }
+  };
+}
+
+// ======================================================
+// Optimizer race
+// ======================================================
+const SURFACES = {
+  rosenbrock: {
+    label: 'Banana valley', name: 'Rosenbrock',
+    f: (x, y) => (1 - x) ** 2 + 100 * (y - x * x) ** 2,
+    g: (x, y) => [-2 * (1 - x) - 400 * x * (y - x * x), 200 * (y - x * x)],
+    xr: [-2, 2], yr: [-1, 3], start: [-1.6, 2.6], minima: [[1, 1]],
+    lr: { sgd: 0.0008, momentum: 0.00025, rmsprop: 0.012, adam: 0.04 },
+  },
+  himmelblau: {
+    label: 'Four valleys', name: 'Himmelblau',
+    f: (x, y) => (x * x + y - 11) ** 2 + (x + y * y - 7) ** 2,
+    g: (x, y) => [4 * x * (x * x + y - 11) + 2 * (x + y * y - 7), 2 * (x * x + y - 11) + 4 * y * (x + y * y - 7)],
+    xr: [-5, 5], yr: [-5, 5], start: [-4.5, 0.2],
+    minima: [[3, 2], [-2.805118, 3.131312], [-3.779310, -3.283186], [3.584428, -1.848126]],
+    lr: { sgd: 0.008, momentum: 0.0015, rmsprop: 0.04, adam: 0.12 },
+  },
+  saddle: {
+    label: 'Saddle point', name: 'Saddle',
+    f: (x, y) => 0.3 * x * x + 0.25 * y ** 4 - y * y + 2,
+    g: (x, y) => [0.6 * x, y ** 3 - 2 * y],
+    xr: [-4, 4], yr: [-2.6, 2.6], start: [-3.6, 0.004], minima: [[0, Math.SQRT2], [0, -Math.SQRT2]],
+    lr: { sgd: 0.04, momentum: 0.008, rmsprop: 0.02, adam: 0.05 },
+  },
+  bumpy: {
+    label: 'Bumpy bowl', name: 'Local minima',
+    f: (x, y) => 0.1 * (x * x + y * y) + 0.25 * (2 - Math.cos(2.5 * x) - Math.cos(2.5 * y)),
+    g: (x, y) => [0.2 * x + 0.625 * Math.sin(2.5 * x), 0.2 * y + 0.625 * Math.sin(2.5 * y)],
+    xr: [-4.5, 4.5], yr: [-4.5, 4.5], start: [3.9, 3.1], minima: [[0, 0]],
+    lr: { sgd: 0.05, momentum: 0.04, rmsprop: 0.05, adam: 0.3 },
+  },
+};
+const OPTS = [
+  { key: 'sgd', name: 'SGD' },
+  { key: 'momentum', name: 'Momentum' },
+  { key: 'rmsprop', name: 'RMSProp' },
+  { key: 'adam', name: 'Adam' },
+].map(o => ({ ...o, color: css('--' + o.key), on: true }));
+
+const race = {
+  surf: 'rosenbrock', view: '2d', lrScale: 1, spf: 2, playing: true, steps: 0, maxSteps: 2500,
+  start: null, yaw: -0.75, pitch: 0.95, field: null, fieldKey: '', mesh: null,
+};
+const rc = document.getElementById('race'), rctx = rc.getContext('2d');
+const rlc = document.getElementById('raceLoss'), rlctx = rlc.getContext('2d');
+
+function resetRace(start) {
+  const S = SURFACES[race.surf];
+  race.start = start || S.start.slice();
+  race.steps = 0;
+  for (const o of OPTS) {
+    o.p = new Float64Array(race.start);
+    o.step = makeOptimizer(o.key);
+    o.trail = [[o.p[0], o.p[1]]];
+    o.losses = [S.f(o.p[0], o.p[1])];
+    o.dead = false;
+  }
+  document.getElementById('surfBadge').textContent = `${S.name} · start (${race.start[0].toFixed(2)}, ${race.start[1].toFixed(2)})`;
+}
+
+function stepRace() {
+  const S = SURFACES[race.surf];
+  for (const o of OPTS) {
+    if (o.dead) continue;
+    const g = S.g(o.p[0], o.p[1]);
+    o.step(o.p, g, S.lr[o.key] * race.lrScale);
+    const [x, y] = o.p;
+    const L = S.f(x, y);
+    if (!isFinite(L) || Math.abs(x) > 1e4 || Math.abs(y) > 1e4) { o.dead = true; o.losses.push(Infinity); continue; }
+    o.trail.push([x, y]);
+    o.losses.push(L);
+  }
+  race.steps++;
+}
+
+// value field for the contour / 3D mesh, log-normalized
+function buildField(S, gw, gh) {
+  const vals = new Float64Array(gw * gh);
+  let lo = Infinity, hi = -Infinity;
+  for (let j = 0; j < gh; j++) for (let i = 0; i < gw; i++) {
+    const x = S.xr[0] + (i / (gw - 1)) * (S.xr[1] - S.xr[0]);
+    const y = S.yr[1] - (j / (gh - 1)) * (S.yr[1] - S.yr[0]);
+    const v = S.f(x, y); vals[j * gw + i] = v;
+    if (v < lo) lo = v; if (v > hi) hi = v;
+  }
+  const norm = (v) => Math.log1p(v - lo) / Math.log1p(hi - lo);
+  for (let k = 0; k < vals.length; k++) vals[k] = norm(vals[k]);
+  return { vals, gw, gh, norm };
+}
+
+function contourImage(S, W, H) {
+  const gw = Math.ceil(W / 2), gh = Math.ceil(H / 2);
+  const { vals, norm } = buildField(S, gw, gh);
+  const off = document.createElement('canvas'); off.width = gw; off.height = gh;
+  const octx = off.getContext('2d'), img = octx.createImageData(gw, gh);
+  const bands = 22;
+  for (let j = 0; j < gh; j++) for (let i = 0; i < gw; i++) {
+    const k = j * gw + i, t = vals[k];
+    let [r, g, b] = cmap(t);
+    const band = Math.floor(t * bands);
+    const edge = (i < gw - 1 && Math.floor(vals[k + 1] * bands) !== band) || (j < gh - 1 && Math.floor(vals[k + gw] * bands) !== band);
+    if (edge) { r = r * 0.55 + 255 * 0.45; g = g * 0.55 + 230 * 0.45; b = b * 0.55 + 235 * 0.45; }
+    const o = k * 4; img.data[o] = r; img.data[o + 1] = g; img.data[o + 2] = b; img.data[o + 3] = 255;
+  }
+  octx.putImageData(img, 0, 0);
+  return { img: off, norm };
+}
+
+const toScreen2D = (S, W, H, x, y) => [
+  ((x - S.xr[0]) / (S.xr[1] - S.xr[0])) * W,
+  ((S.yr[1] - y) / (S.yr[1] - S.yr[0])) * H,
+];
+
+// 3D projection: surface coords -> unit cube -> rotated -> screen
+function project3D(S, W, H, x, y, h) {
+  const u = ((x - S.xr[0]) / (S.xr[1] - S.xr[0])) * 2 - 1;
+  const v = ((y - S.yr[0]) / (S.yr[1] - S.yr[0])) * 2 - 1;
+  const z = h * 0.9 - 0.3;
+  const cy = Math.cos(race.yaw), sy = Math.sin(race.yaw);
+  const rx = u * cy - v * sy, ry = u * sy + v * cy;
+  const cp = Math.cos(race.pitch), sp = Math.sin(race.pitch);
+  const depth = ry * sp - z * cp;
+  const up = ry * cp + z * sp;
+  const scale = Math.min(W, H) * 0.31 * (1 + depth * 0.12 + 0.12);
+  return [W / 2 + rx * scale, H * 0.56 - up * scale, depth];
+}
+
+function drawRace() {
+  fitCanvas(rc);
+  const W = rc.width, H = rc.height, S = SURFACES[race.surf], d = window.devicePixelRatio || 1;
+  const key = `${race.surf}|${W}|${H}`;
+  if (race.fieldKey !== key) {
+    race.field = contourImage(S, W, H);
+    const m = 56; const fld = buildField(S, m, m);
+    race.mesh = { ...fld, m };
+    race.fieldKey = key;
+  }
+  const norm = race.field.norm;
+  rctx.clearRect(0, 0, W, H);
+
+  if (race.view === '2d') {
+    rctx.imageSmoothingEnabled = true;
+    rctx.drawImage(race.field.img, 0, 0, W, H);
+    // minima markers
+    for (const [mx, my] of S.minima) {
+      const [sx, sy] = toScreen2D(S, W, H, mx, my);
+      rctx.strokeStyle = '#ffffffb0'; rctx.lineWidth = 1.5 * d;
+      rctx.beginPath(); rctx.moveTo(sx - 6 * d, sy); rctx.lineTo(sx + 6 * d, sy); rctx.moveTo(sx, sy - 6 * d); rctx.lineTo(sx, sy + 6 * d); rctx.stroke();
+    }
+  } else {
+    // painter's algorithm over mesh quads
+    const { vals, m } = race.mesh, quads = [];
+    const px = (i) => S.xr[0] + (i / (m - 1)) * (S.xr[1] - S.xr[0]);
+    const py = (j) => S.yr[1] - (j / (m - 1)) * (S.yr[1] - S.yr[0]);
+    const P = new Array(m * m);
+    for (let j = 0; j < m; j++) for (let i = 0; i < m; i++) P[j * m + i] = project3D(S, W, H, px(i), py(j), vals[j * m + i]);
+    for (let j = 0; j < m - 1; j++) for (let i = 0; i < m - 1; i++) {
+      const a = P[j * m + i], b = P[j * m + i + 1], c = P[(j + 1) * m + i + 1], e = P[(j + 1) * m + i];
+      const t = (vals[j * m + i] + vals[j * m + i + 1] + vals[(j + 1) * m + i] + vals[(j + 1) * m + i + 1]) / 4;
+      quads.push([a[2] + b[2] + c[2] + e[2], a, b, c, e, t]);
+    }
+    quads.sort((q, r) => r[0] - q[0]);
+    for (const [, a, b, c, e, t] of quads) {
+      const [r, g, bl] = cmap(t);
+      rctx.fillStyle = `rgb(${r | 0},${g | 0},${bl | 0})`;
+      rctx.strokeStyle = `rgba(255,220,230,0.10)`;
+      rctx.lineWidth = 0.6 * d;
+      rctx.beginPath(); rctx.moveTo(a[0], a[1]); rctx.lineTo(b[0], b[1]); rctx.lineTo(c[0], c[1]); rctx.lineTo(e[0], e[1]); rctx.closePath();
+      rctx.fill(); rctx.stroke();
+    }
+  }
+
+  const place = (x, y) => race.view === '2d'
+    ? toScreen2D(S, W, H, x, y)
+    : project3D(S, W, H, clamp(x, S.xr[0], S.xr[1]), clamp(y, S.yr[0], S.yr[1]), clamp(norm(S.f(x, y)), 0, 1) + 0.015);
+
+  // start marker
+  const [sx0, sy0] = place(race.start[0], race.start[1]);
+  rctx.fillStyle = '#fff'; rctx.beginPath(); rctx.arc(sx0, sy0, 3.5 * d, 0, Math.PI * 2); rctx.fill();
+
+  for (const o of OPTS) {
+    if (!o.on) continue;
+    const tr = o.trail, n = tr.length;
+    const stride = Math.max(1, Math.floor(n / 1200));
+    rctx.lineJoin = 'round'; rctx.lineCap = 'round';
+    rctx.strokeStyle = o.color; rctx.lineWidth = 2.2 * d;
+    rctx.shadowColor = o.color; rctx.shadowBlur = 8 * d;
+    rctx.beginPath();
+    for (let k = 0; k < n; k += stride) { const [x, y] = place(tr[k][0], tr[k][1]); k ? rctx.lineTo(x, y) : rctx.moveTo(x, y); }
+    const [hx, hy] = place(tr[n - 1][0], tr[n - 1][1]);
+    rctx.lineTo(hx, hy); rctx.stroke();
+
+    // head + negative-gradient arrow
+    rctx.shadowBlur = 18 * d;
+    rctx.fillStyle = o.color; rctx.beginPath(); rctx.arc(hx, hy, 5 * d, 0, Math.PI * 2); rctx.fill();
+    rctx.shadowBlur = 0;
+    rctx.strokeStyle = '#0008'; rctx.lineWidth = 1.5 * d; rctx.stroke();
+    if (race.view === '2d' && !o.dead) {
+      const [gx, gy] = S.g(tr[n - 1][0], tr[n - 1][1]);
+      const len = Math.hypot(gx, gy);
+      if (len > 1e-6) {
+        const ux = -gx / len, uy = gy / len, L = 26 * d, ex = hx + ux * L, ey = hy + uy * L;
+        rctx.strokeStyle = o.color; rctx.lineWidth = 1.5 * d; rctx.globalAlpha = 0.85;
+        rctx.beginPath(); rctx.moveTo(hx + ux * 7 * d, hy + uy * 7 * d); rctx.lineTo(ex, ey);
+        rctx.moveTo(ex, ey); rctx.lineTo(ex - (ux * 7 - uy * 4) * d, ey - (uy * 7 + ux * 4) * d);
+        rctx.moveTo(ex, ey); rctx.lineTo(ex - (ux * 7 + uy * 4) * d, ey - (uy * 7 - ux * 4) * d);
+        rctx.stroke(); rctx.globalAlpha = 1;
+      }
+    }
+  }
+  rctx.shadowBlur = 0;
+  document.getElementById('raceBadge').textContent = `step ${race.steps}${race.view === '2d' ? ' · arrows = −∇L' : ''}`;
+}
+
+function drawRaceLoss() {
+  fitCanvas(rlc);
+  const W = rlc.width, H = rlc.height, d = window.devicePixelRatio || 1, pad = 4 * d;
+  rlctx.clearRect(0, 0, W, H);
+  let lo = Infinity, hi = -Infinity, n = 1;
+  for (const o of OPTS) if (o.on) for (const v of o.losses) if (isFinite(v)) { const l = Math.log10(v + 1e-9); lo = Math.min(lo, l); hi = Math.max(hi, l); }
+  for (const o of OPTS) n = Math.max(n, o.losses.length);
+  if (!isFinite(lo)) return;
+  if (hi - lo < 1e-6) hi = lo + 1;
+  rlctx.strokeStyle = '#ffffff12'; rlctx.lineWidth = 1;
+  for (let k = 1; k < 4; k++) { const y = pad + (H - 2 * pad) * k / 4; rlctx.beginPath(); rlctx.moveTo(0, y); rlctx.lineTo(W, y); rlctx.stroke(); }
+  for (const o of OPTS) {
+    if (!o.on) continue;
+    rlctx.strokeStyle = o.color; rlctx.lineWidth = 1.6 * d; rlctx.beginPath();
+    const stride = Math.max(1, Math.floor(o.losses.length / 400));
+    let started = false;
+    for (let k = 0; k < o.losses.length; k += stride) {
+      const v = o.losses[k]; if (!isFinite(v)) break;
+      const x = pad + (W - 2 * pad) * k / Math.max(1, n - 1);
+      const y = pad + (H - 2 * pad) * (1 - (Math.log10(v + 1e-9) - lo) / (hi - lo));
+      started ? rlctx.lineTo(x, y) : rlctx.moveTo(x, y); started = true;
+    }
+    rlctx.stroke();
+  }
+  rlctx.fillStyle = css('--muted'); rlctx.font = `${10 * d}px JetBrains Mono, monospace`;
+  rlctx.fillText('log loss', W - rlctx.measureText('log loss').width - pad, pad + 10 * d);
+}
+
+function renderLegend() {
+  const el = document.getElementById('legend');
+  el.innerHTML = '';
+  for (const o of OPTS) {
+    const row = document.createElement('div');
+    row.className = 'opt' + (o.on ? '' : ' off');
+    row.innerHTML = `<i style="color:${o.color}"></i><span>${o.name}</span><span class="v" data-k="${o.key}"></span>`;
+    row.onclick = () => { o.on = !o.on; renderLegend(); };
+    el.appendChild(row);
+  }
+}
+function updateLegendValues() {
+  for (const o of OPTS) {
+    const v = document.querySelector(`.v[data-k="${o.key}"]`);
+    if (!v) continue;
+    v.textContent = o.dead ? 'diverged' : fmt(o.losses[o.losses.length - 1]);
+    v.classList.toggle('dead', o.dead);
+  }
+}
+
+// controls
+const surfEl = document.getElementById('surfaces');
+for (const [k, S] of Object.entries(SURFACES)) {
+  const b = document.createElement('button');
+  b.textContent = S.label; b.dataset.s = k; if (k === race.surf) b.className = 'on';
+  b.onclick = () => {
+    race.surf = k; race.fieldKey = '';
+    surfEl.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+    resetRace(); race.playing = true; syncPlay();
+  };
+  surfEl.appendChild(b);
+}
+document.getElementById('views').querySelectorAll('button').forEach(b => b.onclick = () => {
+  race.view = b.dataset.v;
+  document.querySelectorAll('#views button').forEach(x => x.classList.toggle('on', x === b));
+  rc.style.cursor = race.view === '3d' ? 'grab' : 'crosshair';
+});
+const lrEl = document.getElementById('lr');
+lrEl.oninput = () => { race.lrScale = 10 ** +lrEl.value; document.getElementById('lrOut').textContent = race.lrScale.toFixed(2); };
+const spdEl = document.getElementById('spd');
+spdEl.oninput = () => { race.spf = +spdEl.value; document.getElementById('spdOut').textContent = race.spf; };
+const playBtn = document.getElementById('play');
+const syncPlay = () => playBtn.textContent = race.playing ? 'Pause' : (race.steps >= race.maxSteps ? 'Replay' : 'Play');
+playBtn.onclick = () => {
+  if (!race.playing && race.steps >= race.maxSteps) resetRace(race.start);
+  race.playing = !race.playing; syncPlay();
+};
+document.getElementById('reset').onclick = () => { resetRace(); race.playing = true; syncPlay(); };
+
+rc.style.cursor = 'crosshair';
+let drag = null;
+rc.addEventListener('pointerdown', (e) => {
+  if (race.view === '3d') { drag = { x: e.clientX, y: e.clientY, yaw: race.yaw, pitch: race.pitch }; rc.setPointerCapture(e.pointerId); rc.style.cursor = 'grabbing'; return; }
+  const r = rc.getBoundingClientRect(), S = SURFACES[race.surf];
+  const x = S.xr[0] + ((e.clientX - r.left) / r.width) * (S.xr[1] - S.xr[0]);
+  const y = S.yr[1] - ((e.clientY - r.top) / r.height) * (S.yr[1] - S.yr[0]);
+  resetRace([x, y]); race.playing = true; syncPlay();
+});
+rc.addEventListener('pointermove', (e) => {
+  if (!drag) return;
+  race.yaw = drag.yaw - (e.clientX - drag.x) * 0.01;
+  race.pitch = clamp(drag.pitch + (e.clientY - drag.y) * 0.008, 0.25, 1.45);
+});
+rc.addEventListener('pointerup', () => { drag = null; if (race.view === '3d') rc.style.cursor = 'grab'; });
+
+// ======================================================
+// Cellar classifier
+// ======================================================
+const CLASSES = ['red', 'white', 'rose', 'sparkling'];
+const CLASS_LABEL = { red: 'Red', white: 'White', rose: 'Rosé', sparkling: 'Sparkling' };
+const CLASS_RGB = Object.fromEntries(CLASSES.map(c => [c, hexRgb(css('--' + c))]));
+const FEATS = [
+  { key: 'body', label: 'Body', col: 2 },
+  { key: 'acidity', label: 'Acidity', col: 3 },
+  { key: 'tannin', label: 'Tannin', col: 4 },
+  { key: 'sweetness', label: 'Sweetness', col: 5 },
+  { key: 'abv', label: 'Alcohol %', col: 6 },
+];
+const cell = { fx: 0, fy: 1, poly: true, opt: 'adam', lr: 0.05, playing: false, epoch: 0, maxEpoch: 3000, hist: [], hover: -1 };
+const cc = document.getElementById('cell'), cctx = cc.getContext('2d');
+const clc = document.getElementById('cellLoss'), clctx = clc.getContext('2d');
+
+function nfeat() { return cell.poly ? 5 : 2; }
+function phi(a, b, out) {
+  out[0] = a; out[1] = b;
+  if (cell.poly) { out[2] = a * a; out[3] = b * b; out[4] = a * b; }
+  return out;
+}
+
+function resetCell() {
+  const xs = WINES.map(w => w[FEATS[cell.fx].col]), ys = WINES.map(w => w[FEATS[cell.fy].col]);
+  const stats = (v) => { const m = v.reduce((a, b) => a + b) / v.length; return [m, Math.sqrt(v.reduce((a, b) => a + (b - m) ** 2, 0) / v.length) || 1]; };
+  cell.sx = stats(xs); cell.sy = stats(ys);
+  const pad = (v) => { const lo = Math.min(...v), hi = Math.max(...v), p = (hi - lo) * 0.12 || 1; return [lo - p, hi + p]; };
+  cell.xr = pad(xs); cell.yr = pad(ys);
+  const K = CLASSES.length, D = nfeat();
+  cell.params = new Float64Array((D + 1) * K); // W (D×K) then b (K)
+  cell.step = makeOptimizer(cell.opt);
+  cell.X = WINES.map(w => phi((w[FEATS[cell.fx].col] - cell.sx[0]) / cell.sx[1], (w[FEATS[cell.fy].col] - cell.sy[0]) / cell.sy[1], new Float64Array(D)));
+  cell.Y = WINES.map(w => CLASSES.indexOf(w[1]));
+  cell.epoch = 0; cell.hist = [];
+  const r = lossGrad(); cell.hist.push(r);
+}
+
+function probs(x, out) {
+  const K = CLASSES.length, D = nfeat(), P = cell.params;
+  let mx = -Infinity;
+  for (let k = 0; k < K; k++) {
+    let z = P[D * K + k];
+    for (let j = 0; j < D; j++) z += x[j] * P[j * K + k];
+    out[k] = z; if (z > mx) mx = z;
+  }
+  let s = 0;
+  for (let k = 0; k < K; k++) { out[k] = Math.exp(out[k] - mx); s += out[k]; }
+  for (let k = 0; k < K; k++) out[k] /= s;
+  return out;
+}
+
+function lossGrad() {
+  const K = CLASSES.length, D = nfeat(), n = cell.X.length, P = cell.params;
+  const G = new Float64Array(P.length), p = new Float64Array(K);
+  let loss = 0, correct = 0;
+  const l2 = 1e-3;
+  for (let i = 0; i < n; i++) {
+    probs(cell.X[i], p);
+    const y = cell.Y[i];
+    loss -= Math.log(p[y] + 1e-12);
+    let best = 0; for (let k = 1; k < K; k++) if (p[k] > p[best]) best = k;
+    if (best === y) correct++;
+    for (let k = 0; k < K; k++) {
+      const dz = (p[k] - (k === y ? 1 : 0)) / n;
+      for (let j = 0; j < D; j++) G[j * K + k] += cell.X[i][j] * dz;
+      G[D * K + k] += dz;
+    }
+  }
+  let reg = 0;
+  for (let q = 0; q < D * K; q++) { reg += P[q] * P[q]; G[q] += l2 * P[q]; }
+  loss = loss / n + 0.5 * l2 * reg;
+  let gn = 0; for (const g of G) gn += g * g;
+  return { loss, acc: correct / n, grad: G, gnorm: Math.sqrt(gn) };
+}
+
+function trainStep() {
+  const r = cell.hist[cell.hist.length - 1];
+  cell.step(cell.params, r.grad, cell.lr);
+  cell.epoch++;
+  const nr = lossGrad();
+  if (!isFinite(nr.loss)) { cell.playing = false; syncCellPlay(); }
+  cell.hist.push(nr);
+}
+
+function cellScreen(W, H, a, b) {
+  return [((a - cell.xr[0]) / (cell.xr[1] - cell.xr[0])) * W, ((cell.yr[1] - b) / (cell.yr[1] - cell.yr[0])) * H];
+}
+
+function drawCell() {
+  fitCanvas(cc);
+  const W = cc.width, H = cc.height, d = window.devicePixelRatio || 1;
+  const gw = 110, gh = Math.round(gw * H / W);
+  const off = drawCell.off || (drawCell.off = document.createElement('canvas'));
+  off.width = gw; off.height = gh;
+  const octx = off.getContext('2d'), img = octx.createImageData(gw, gh);
+  const p = new Float64Array(CLASSES.length), x = new Float64Array(nfeat());
+  for (let j = 0; j < gh; j++) for (let i = 0; i < gw; i++) {
+    const a = cell.xr[0] + (i + 0.5) / gw * (cell.xr[1] - cell.xr[0]);
+    const b = cell.yr[1] - (j + 0.5) / gh * (cell.yr[1] - cell.yr[0]);
+    probs(phi((a - cell.sx[0]) / cell.sx[1], (b - cell.sy[0]) / cell.sy[1], x), p);
+    let r = 0, g = 0, bl = 0, mx = 0;
+    CLASSES.forEach((c, k) => { const col = CLASS_RGB[c]; r += col[0] * p[k]; g += col[1] * p[k]; bl += col[2] * p[k]; mx = Math.max(mx, p[k]); });
+    const conf = (mx - 0.25) / 0.75, a2 = 0.12 + 0.5 * conf;
+    const o = (j * gw + i) * 4;
+    img.data[o] = 10 + (r - 10) * a2; img.data[o + 1] = 7 + (g - 7) * a2; img.data[o + 2] = 9 + (bl - 9) * a2; img.data[o + 3] = 255;
+  }
+  octx.putImageData(img, 0, 0);
+  cctx.imageSmoothingEnabled = true;
+  cctx.drawImage(off, 0, 0, W, H);
+
+  // axes labels + grid
+  cctx.strokeStyle = '#ffffff10'; cctx.lineWidth = 1;
+  cctx.fillStyle = '#ffffff70'; cctx.font = `${11 * d}px JetBrains Mono, monospace`;
+  const ticks = (lo, hi) => { const s = (hi - lo) > 6 ? 2 : (hi - lo) > 2.5 ? 1 : 0.5; const out = []; for (let v = Math.ceil(lo / s) * s; v <= hi; v += s) out.push(+v.toFixed(2)); return out; };
+  for (const v of ticks(...cell.xr)) { const [sx] = cellScreen(W, H, v, 0); cctx.beginPath(); cctx.moveTo(sx, 0); cctx.lineTo(sx, H); cctx.stroke(); cctx.fillText(v, sx + 3 * d, H - 6 * d); }
+  for (const v of ticks(...cell.yr)) { const [, sy] = cellScreen(W, H, 0, v); cctx.beginPath(); cctx.moveTo(0, sy); cctx.lineTo(W, sy); cctx.stroke(); cctx.fillText(v, 6 * d, sy - 3 * d); }
+  cctx.fillStyle = '#ffffffb0'; cctx.font = `600 ${12 * d}px Inter, sans-serif`;
+  const xl = FEATS[cell.fx].label + ' →'; cctx.fillText(xl, W - cctx.measureText(xl).width - 10 * d, H - 22 * d);
+  cctx.fillText('↑ ' + FEATS[cell.fy].label, 12 * d, 62 * d);
+
+  // bottles
+  WINES.forEach((w, i) => {
+    const [sx, sy] = cellScreen(W, H, w[FEATS[cell.fx].col], w[FEATS[cell.fy].col]);
+    probs(cell.X[i], p);
+    let best = 0; for (let k = 1; k < p.length; k++) if (p[k] > p[best]) best = k;
+    const wrong = best !== cell.Y[i] && cell.epoch > 0;
+    const col = CLASS_RGB[w[1]], R = (i === cell.hover ? 9 : 6.5) * d;
+    cctx.shadowColor = `rgb(${col})`; cctx.shadowBlur = 12 * d;
+    cctx.fillStyle = `rgb(${col})`; cctx.beginPath(); cctx.arc(sx, sy, R, 0, Math.PI * 2); cctx.fill();
+    cctx.shadowBlur = 0;
+    cctx.lineWidth = (wrong ? 2.2 : 1.4) * d;
+    cctx.strokeStyle = wrong ? '#ff4d4d' : '#0c080a'; cctx.stroke();
+    if (wrong) { cctx.setLineDash([3 * d, 3 * d]); cctx.beginPath(); cctx.arc(sx, sy, R + 4 * d, 0, Math.PI * 2); cctx.stroke(); cctx.setLineDash([]); }
+  });
+
+  const last = cell.hist[cell.hist.length - 1];
+  document.getElementById('cellBadge').textContent = `epoch ${cell.epoch} · dashed = misclassified`;
+  document.getElementById('sLoss').textContent = fmt(last.loss);
+  document.getElementById('sAcc').textContent = Math.round(last.acc * 100) + '%';
+  document.getElementById('sGrad').textContent = fmt(last.gnorm);
+  drawCellLoss();
+  updateTip();
+}
+
+function drawCellLoss() {
+  fitCanvas(clc);
+  const W = clc.width, H = clc.height, d = window.devicePixelRatio || 1, pad = 4 * d, h = cell.hist, n = h.length;
+  clctx.clearRect(0, 0, W, H);
+  clctx.strokeStyle = '#ffffff12'; clctx.lineWidth = 1;
+  for (let k = 1; k < 4; k++) { const y = pad + (H - 2 * pad) * k / 4; clctx.beginPath(); clctx.moveTo(0, y); clctx.lineTo(W, y); clctx.stroke(); }
+  const maxL = Math.max(...h.map(r => isFinite(r.loss) ? r.loss : 0), 0.01);
+  const span = Math.max(n - 1, 200), stride = Math.max(1, Math.floor(n / 400));
+  const line = (get, color, lo, hi) => {
+    clctx.strokeStyle = color; clctx.lineWidth = 1.8 * d; clctx.beginPath();
+    for (let k = 0; k < n; k += stride) {
+      const v = get(h[k]); if (!isFinite(v)) break;
+      const x = pad + (W - 2 * pad) * k / span, y = pad + (H - 2 * pad) * (1 - (v - lo) / (hi - lo));
+      k ? clctx.lineTo(x, y) : clctx.moveTo(x, y);
+    }
+    clctx.stroke();
+  };
+  line(r => r.loss, css('--wine-soft'), 0, maxL);
+  line(r => r.acc, css('--gold'), 0, 1);
+}
+
+// tooltip
+const tip = document.getElementById('tip'), cellStage = document.getElementById('cellStage');
+cc.addEventListener('pointermove', (e) => {
+  const r = cc.getBoundingClientRect(), W = r.width, H = r.height;
+  const mx = e.clientX - r.left, my = e.clientY - r.top;
+  let best = -1, bd = 14 * 14;
+  WINES.forEach((w, i) => {
+    const sx = ((w[FEATS[cell.fx].col] - cell.xr[0]) / (cell.xr[1] - cell.xr[0])) * W;
+    const sy = ((cell.yr[1] - w[FEATS[cell.fy].col]) / (cell.yr[1] - cell.yr[0])) * H;
+    const dd = (sx - mx) ** 2 + (sy - my) ** 2; if (dd < bd) { bd = dd; best = i; }
+  });
+  cell.hover = best; cell.tipPos = [mx, my, W];
+  if (!cell.playing) drawCell(); else updateTip();
+});
+cc.addEventListener('pointerleave', () => { cell.hover = -1; tip.style.opacity = 0; if (!cell.playing) drawCell(); });
+function updateTip() {
+  if (cell.hover < 0) { tip.style.opacity = 0; return; }
+  const w = WINES[cell.hover], p = probs(cell.X[cell.hover], new Float64Array(CLASSES.length));
+  tip.innerHTML = `<b>${w[0]}</b><div style="color:var(--muted);margin-bottom:6px">actually ${CLASS_LABEL[w[1]]} · ${FEATS[cell.fx].label} ${w[FEATS[cell.fx].col]} · ${FEATS[cell.fy].label} ${w[FEATS[cell.fy].col]}</div>` +
+    CLASSES.map((c, k) => `<div class="bar"><span>${CLASS_LABEL[c]}</span><div style="width:${Math.max(2, p[k] * 100)}%;background:rgb(${CLASS_RGB[c]})"></div><span>${Math.round(p[k] * 100)}%</span></div>`).join('');
+  const [mx, my, W] = cell.tipPos;
+  tip.style.left = (mx > W - 200 ? mx - 200 : mx + 16) + 'px';
+  tip.style.top = Math.max(8, my - 20) + 'px';
+  tip.style.opacity = 1;
+}
+
+// cellar controls
+const fxEl = document.getElementById('fx'), fyEl = document.getElementById('fy');
+FEATS.forEach((f, i) => { fxEl.add(new Option(f.label, i)); fyEl.add(new Option(f.label, i)); });
+fxEl.value = cell.fx; fyEl.value = cell.fy;
+const restartCell = () => { resetCell(); drawCell(); };
+fxEl.onchange = () => { cell.fx = +fxEl.value; restartCell(); };
+fyEl.onchange = () => { cell.fy = +fyEl.value; restartCell(); };
+document.getElementById('poly').onchange = (e) => { cell.poly = e.target.checked; restartCell(); };
+document.getElementById('cOpt').onchange = (e) => {
+  cell.opt = e.target.value;
+  const defaults = { sgd: 0.5, momentum: 0.1, rmsprop: 0.02, adam: 0.05 };
+  cLr.value = Math.log10(defaults[cell.opt]); cLr.oninput(); restartCell();
+};
+const cLr = document.getElementById('cLr');
+cLr.oninput = () => { cell.lr = 10 ** +cLr.value; document.getElementById('cLrOut').textContent = cell.lr < 0.01 ? cell.lr.toExponential(1) : cell.lr.toFixed(3); };
+const cPlay = document.getElementById('cPlay');
+const syncCellPlay = () => cPlay.textContent = cell.playing ? 'Pause' : (cell.epoch ? 'Resume' : 'Train');
+cPlay.onclick = () => { if (cell.epoch >= cell.maxEpoch) resetCell(); cell.playing = !cell.playing; syncCellPlay(); };
+document.getElementById('cReset').onclick = () => { cell.playing = false; restartCell(); syncCellPlay(); };
+document.getElementById('classKeys').innerHTML = CLASSES.map(c => `<span><i style="background:var(--${c});box-shadow:0 0 8px var(--${c})"></i>${CLASS_LABEL[c]}</span>`).join('');
+
+// ======================================================
+// main loop
+// ======================================================
+renderLegend();
+resetRace();
+if (location.hash === '#3d') document.querySelector('#views [data-v="3d"]').click();
+resetCell();
+cLr.oninput();
+drawCell();
+
+let cellVisible = true;
+let autoStarted = false;
+new IntersectionObserver(([e]) => {
+  cellVisible = e.isIntersecting;
+  if (cellVisible && !autoStarted) { autoStarted = true; cell.playing = true; syncCellPlay(); }
+}, { threshold: 0.4 }).observe(cellStage);
+
+function frame() {
+  if (race.playing) {
+    for (let k = 0; k < race.spf && race.steps < race.maxSteps; k++) stepRace();
+    if (race.steps >= race.maxSteps || OPTS.every(o => o.dead)) { race.playing = false; syncPlay(); }
+  }
+  drawRace();
+  drawRaceLoss();
+  updateLegendValues();
+
+  if (cell.playing) {
+    for (let k = 0; k < 3 && cell.epoch < cell.maxEpoch; k++) trainStep();
+    if (cell.epoch >= cell.maxEpoch) { cell.playing = false; syncCellPlay(); }
+    if (cellVisible) drawCell();
+  }
+  requestAnimationFrame(frame);
+}
+addEventListener('resize', () => { race.fieldKey = ''; drawCell(); });
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

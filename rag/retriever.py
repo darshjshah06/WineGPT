@@ -9,4 +9,3 @@ def retrieve(query: str, k: int = 3):
     )
 
     return results["documents"][0]
-    return results [documents[1]]

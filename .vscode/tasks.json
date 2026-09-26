@@ -1,0 +1,11 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Open Gradient Lab in browser",
+      "type": "shell",
+      "command": "open lab/index.html",
+      "problemMatcher": []
+    }
+  ]
+}

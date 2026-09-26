@@ -1,6 +1,41 @@
-name,region,grape,body,acidity,notes
-Caymus Cabernet,Napa Valley,Cabernet Sauvignon,Full,Medium,"Blackberry, oak, vanilla"
-Cloudy Bay Sauvignon Blanc,Marlborough,Sauvignon Blanc,Light,High,"Citrus, tropical fruit"
-La Crema Pinot Noir,Sonoma,Pinot Noir,Medium,Medium,"Cherry, raspberry"
-Veuve Clicquot Champagne,Champagne,Blend,Medium,High,"Brioche, apple"
-Penfolds Shiraz,Barossa Valley,Shiraz,Full,Medium,"Pepper, dark fruit"
+name,region,grape,type,body,acidity,notes,body_score,acidity_score,tannin,sweetness,abv
+Caymus Cabernet,Napa Valley,Cabernet Sauvignon,red,Full,Medium,"Blackberry, oak, vanilla",4.7,2.8,4.3,1.4,14.8
+Cloudy Bay Sauvignon Blanc,Marlborough,Sauvignon Blanc,white,Light,High,"Citrus, tropical fruit",1.8,4.6,1.0,1.3,13.0
+La Crema Pinot Noir,Sonoma,Pinot Noir,red,Medium,Medium,"Cherry, raspberry",2.9,3.4,2.4,1.3,13.5
+Veuve Clicquot Champagne,Champagne,Blend,sparkling,Medium,High,"Brioche, apple",2.6,4.7,1.0,1.8,12.0
+Penfolds Bin 389,South Australia,Cabernet Shiraz,red,Full,Medium,"Plum, mocha, spice",4.6,2.9,4.0,1.4,14.5
+Duckhorn Merlot,Napa Valley,Merlot,red,Medium-Full,Medium,"Black cherry, cocoa",3.9,2.8,3.2,1.5,14.5
+Catena Malbec,Mendoza,Malbec,red,Full,Medium,"Violet, blackberry, spice",4.3,3.0,3.5,1.4,13.9
+Antinori Tignanello,Tuscany,Sangiovese Blend,red,Full,High,"Cherry, leather, herbs",4.0,3.9,4.1,1.2,14.0
+Marques de Riscal Reserva,Rioja,Tempranillo,red,Medium,Medium,"Strawberry, vanilla, tobacco",3.3,3.2,3.1,1.3,14.0
+Guigal Cotes du Rhone,Rhone Valley,GSM Blend,red,Medium,Medium,"Raspberry, pepper, garrigue",3.4,3.0,2.8,1.4,14.5
+Barolo Fontanafredda,Piedmont,Nebbiolo,red,Full,High,"Rose, tar, cherry",4.1,4.2,4.8,1.1,14.0
+Louis Jadot Beaujolais,Burgundy,Gamay,red,Light,High,"Cranberry, banana, violet",2.0,3.9,1.6,1.4,12.5
+Ridge Lytton Springs,Sonoma,Zinfandel,red,Full,Medium,"Jammy blackberry, pepper",4.4,2.9,3.1,1.9,14.8
+Chateau Margaux,Bordeaux,Cabernet Blend,red,Full,Medium,"Cassis, cedar, graphite",4.5,3.4,4.5,1.1,13.5
+Kim Crawford Pinot Noir,Marlborough,Pinot Noir,red,Light-Medium,High,"Cherry, earth",2.5,3.8,2.1,1.3,13.5
+Chateau Musar,Bekaa Valley,Cinsault Blend,red,Medium,Medium,"Dried fig, spice",3.5,3.4,3.0,1.2,14.0
+Rombauer Chardonnay,Carneros,Chardonnay,white,Full,Low,"Butter, vanilla, peach",3.8,2.3,1.0,1.8,14.5
+Dr Loosen Riesling,Mosel,Riesling,white,Light,High,"Green apple, slate, lime",1.4,4.8,1.0,2.9,8.5
+Santa Margherita Pinot Grigio,Alto Adige,Pinot Grigio,white,Light,Medium,"Pear, lemon",1.7,3.5,1.0,1.4,12.5
+Trimbach Gewurztraminer,Alsace,Gewurztraminer,white,Medium-Full,Low,"Lychee, rose, ginger",3.3,2.2,1.0,2.4,13.5
+Domaine Weinbach Riesling,Alsace,Riesling,white,Medium,High,"Peach, petrol, citrus",2.4,4.4,1.0,1.8,12.5
+Chablis Premier Cru,Burgundy,Chardonnay,white,Light-Medium,High,"Lemon, oyster shell, flint",2.2,4.3,1.0,1.2,12.5
+Condrieu Guigal,Rhone Valley,Viognier,white,Full,Low,"Apricot, honeysuckle",3.7,2.5,1.0,1.6,14.0
+Albarino Martin Codax,Rias Baixas,Albarino,white,Light,High,"Saline, grapefruit",1.6,4.4,1.0,1.3,12.5
+Gruner Veltliner Loimer,Kamptal,Gruner Veltliner,white,Light-Medium,High,"White pepper, lime",2.1,4.1,1.0,1.3,12.5
+Sancerre Pascal Jolivet,Loire Valley,Sauvignon Blanc,white,Light,High,"Gooseberry, chalk",1.9,4.5,1.0,1.2,13.0
+Whispering Angel,Provence,Grenache Blend,rose,Light,Medium,"Strawberry, peach, mineral",1.7,3.6,1.3,1.4,13.0
+Miraval Rose,Provence,Cinsault Grenache,rose,Light,Medium,"Red currant, citrus",1.8,3.7,1.3,1.3,13.0
+Tavel Chateau d'Aqueria,Rhone Valley,Grenache,rose,Medium,Medium,"Raspberry, herbs",2.8,3.1,1.8,1.4,14.0
+Mulderbosch Rose,Stellenbosch,Cabernet Sauvignon,rose,Light-Medium,Medium,"Watermelon, cherry",2.2,3.3,1.5,1.9,12.5
+Bandol Rose Tempier,Provence,Mourvedre,rose,Medium,Medium,"Wild berry, spice",2.6,3.4,1.9,1.2,13.5
+Beringer White Zinfandel,California,Zinfandel,rose,Light,Low,"Candy strawberry",1.5,2.6,1.1,3.3,10.0
+Dom Perignon,Champagne,Chardonnay Pinot Noir,sparkling,Medium,High,"Toast, citrus, almond",2.9,4.4,1.0,1.6,12.5
+Krug Grande Cuvee,Champagne,Blend,sparkling,Full,High,"Hazelnut, brioche, honey",3.3,4.3,1.0,1.6,12.0
+La Marca Prosecco,Veneto,Glera,sparkling,Light,Medium,"Green apple, honeysuckle",1.4,3.6,1.0,2.2,11.0
+Segura Viudas Cava,Penedes,Macabeo Blend,sparkling,Light,High,"Citrus, almond",1.7,4.1,1.0,1.6,11.5
+Moscato d'Asti Vietti,Piedmont,Moscato,sparkling,Light,Medium,"Peach, orange blossom",1.2,3.3,1.0,3.9,5.5
+Schramsberg Blanc de Blancs,North Coast,Chardonnay,sparkling,Light-Medium,High,"Lemon curd, brioche",2.3,4.6,1.0,1.5,12.5
+Nyetimber Classic Cuvee,Sussex,Blend,sparkling,Medium,High,"Baked apple, honey",2.5,4.8,1.0,1.7,12.0
+Ruinart Rose,Champagne,Pinot Noir Chardonnay,sparkling,Medium,High,"Rose petal, red berry",2.7,4.2,1.1,1.6,12.5

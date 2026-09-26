@@ -1,0 +1,34 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "🍷 Gradient Lab dashboard",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "ml.visualize",
+      "args": ["--surface", "${input:surface}"],
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}/venv/bin/python",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "🍷 Optimizer race (terminal)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "ml.train",
+      "args": ["--race"],
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}/venv/bin/python",
+      "console": "integratedTerminal"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "surface",
+      "type": "pickString",
+      "description": "Loss surface",
+      "options": ["rosenbrock", "himmelblau", "saddle", "bumpy"],
+      "default": "bumpy"
+    }
+  ]
+}
